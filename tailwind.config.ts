@@ -1,5 +1,7 @@
 import type { Config } from "tailwindcss";
 
+// Helper to use HSL CSS variables with Tailwind
+
 export default {
   darkMode: ["class"],
   content: [

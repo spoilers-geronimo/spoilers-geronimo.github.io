@@ -5,9 +5,8 @@ import { Footer } from '@/components/layout/Footer';
 import { LoginModal } from '@/components/auth/LoginModal';
 import { StarRating } from '@/components/recipes/StarRating';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { mockRecipes } from '@/data/mockRecipes';
-import { Clock, Users, ChefHat, ArrowLeft, Bookmark, Share2 } from 'lucide-react';
+import { Clock, Timer, Users, ArrowLeft, Bookmark, Share2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const RecipeDetail = () => {
@@ -71,174 +70,173 @@ const RecipeDetail = () => {
         onLogout={() => setIsLoggedIn(false)}
       />
 
-      <main className="flex-1">
-        {/* Hero Image */}
-        <div className="relative h-[50vh] min-h-[400px]">
-          <img
-            src={recipe.image}
-            alt={recipe.title}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-          
+      <main className="flex-1 bg-wood-pattern py-8 sm:py-12 lg:py-16">
+        <div className="container max-w-5xl">
           {/* Back Button */}
           <Link
             to="/recipes"
-            className="absolute top-6 left-6 flex items-center gap-2 text-white/90 hover:text-white transition-colors"
+            className="inline-flex items-center gap-2 text-primary-foreground/80 hover:text-primary-foreground transition-colors mb-6 bg-brown-warm/80 px-4 py-2 rounded-full backdrop-blur-sm"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-4 w-4" />
             Back to Recipes
           </Link>
 
-          {/* Actions */}
-          <div className="absolute top-6 right-6 flex gap-2">
-            <Button
-              variant="secondary"
-              size="icon"
-              className="rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30"
-              onClick={handleSave}
-            >
-              <Bookmark className="h-5 w-5 text-white" />
-            </Button>
-            <Button
-              variant="secondary"
-              size="icon"
-              className="rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30"
-            >
-              <Share2 className="h-5 w-5 text-white" />
-            </Button>
-          </div>
-
-          {/* Title Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-12">
-            <div className="container">
-              <Badge className="mb-4 bg-primary">{recipe.category}</Badge>
-              <h1 className="font-display text-3xl sm:text-5xl font-bold text-white mb-4">
-                {recipe.title}
-              </h1>
-              <div className="flex flex-wrap items-center gap-4 text-white/90">
-                <StarRating rating={recipe.rating} totalRatings={recipe.totalRatings} />
-                <span className="flex items-center gap-1">
-                  <Clock className="h-5 w-5" />
-                  {recipe.cookTime}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Users className="h-5 w-5" />
-                  {recipe.servings} servings
-                </span>
-                <Badge
-                  variant="outline"
-                  className="border-white/50 text-white"
-                >
-                  {recipe.difficulty}
-                </Badge>
+          {/* Recipe Book Page */}
+          <div className="recipe-book-page bg-background shadow-2xl rounded-sm p-6 sm:p-10 lg:p-14 relative">
+            {/* Page texture overlay */}
+            <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0iIzAwMCIvPjwvc3ZnPg==')]" />
+            
+            {/* Title Banner */}
+            <div className="relative mb-8 sm:mb-10">
+              <div className="bg-secondary/60 border-y border-primary/20 py-4 sm:py-5 px-6 text-center">
+                <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-wide text-foreground uppercase">
+                  {recipe.title}
+                </h1>
               </div>
+              {/* Decorative corners */}
+              <div className="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-primary/40" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-primary/40" />
+              <div className="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-primary/40" />
+              <div className="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-primary/40" />
             </div>
-          </div>
-        </div>
 
-        {/* Content */}
-        <div className="container py-12">
-          <div className="grid lg:grid-cols-3 gap-12">
-            {/* Main Content */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* Description */}
-              <section>
-                <p className="text-lg text-muted-foreground leading-relaxed">
-                  {recipe.description}
-                </p>
-              </section>
-
-              {/* Ingredients */}
-              <section className="glass-card rounded-xl p-6">
-                <h2 className="font-display text-2xl font-semibold mb-4">Ingredients</h2>
-                <ul className="space-y-3">
+            {/* Two Column Layout */}
+            <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
+              {/* Left Column - Ingredients */}
+              <div>
+                <h2 className="font-display text-xl sm:text-2xl font-semibold text-foreground mb-6 italic">
+                  Ingredients
+                </h2>
+                <ul className="space-y-2.5 mb-8">
                   {recipe.ingredients.map((ingredient, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <span className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-sm text-primary font-medium flex-shrink-0">
-                        {index + 1}
-                      </span>
+                    <li key={index} className="flex items-start gap-3 text-foreground/90 font-body text-sm sm:text-base">
+                      <span className="text-primary mt-0.5">•</span>
                       <span>{ingredient}</span>
                     </li>
                   ))}
                 </ul>
-              </section>
 
-              {/* Instructions */}
-              <section>
-                <h2 className="font-display text-2xl font-semibold mb-6">Instructions</h2>
-                <ol className="space-y-6">
-                  {recipe.instructions.map((instruction, index) => (
-                    <li key={index} className="flex gap-4">
-                      <span className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-semibold flex-shrink-0">
-                        {index + 1}
+                {/* Dotted Separator */}
+                <div className="border-t border-dotted border-muted-foreground/30 my-8" />
+
+                {/* Notes Section */}
+                <div className="italic text-muted-foreground text-sm leading-relaxed">
+                  <p className="font-display font-medium text-foreground/80 mb-2">Notes:</p>
+                  <p>
+                    {recipe.description}
+                  </p>
+                </div>
+
+                {/* Rating Section */}
+                <div className="mt-8 pt-6 border-t border-border/50">
+                  <p className="font-display text-sm font-medium text-foreground/80 mb-2">Rate this recipe:</p>
+                  <div className="flex items-center gap-4">
+                    <StarRating
+                      rating={userRating || recipe.rating}
+                      interactive
+                      onRate={handleRate}
+                      size="lg"
+                    />
+                    {!isLoggedIn && (
+                      <span className="text-xs text-muted-foreground italic">
+                        Sign in to rate
                       </span>
-                      <p className="pt-1 text-muted-foreground">{instruction}</p>
-                    </li>
-                  ))}
-                </ol>
-              </section>
-            </div>
-
-            {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Author Card */}
-              <div className="glass-card rounded-xl p-6">
-                <h3 className="font-display font-semibold mb-4">Recipe by</h3>
-                <div className="flex items-center gap-4">
-                  <img
-                    src={recipe.author.avatar}
-                    alt={recipe.author.name}
-                    className="w-14 h-14 rounded-full object-cover ring-2 ring-primary/20"
-                  />
-                  <div>
-                    <p className="font-medium">{recipe.author.name}</p>
-                    <p className="text-sm text-muted-foreground">Home Cook</p>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Rate Recipe */}
-              <div className="glass-card rounded-xl p-6">
-                <h3 className="font-display font-semibold mb-4">Rate this Recipe</h3>
-                <StarRating
-                  rating={userRating || recipe.rating}
-                  interactive
-                  onRate={handleRate}
-                  size="lg"
-                />
-                {!isLoggedIn && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Sign in to rate this recipe
-                  </p>
-                )}
-              </div>
+              {/* Right Column - Info, Image, Preparation */}
+              <div>
+                {/* Quick Info Icons */}
+                <div className="flex justify-center gap-8 sm:gap-12 mb-8">
+                  <div className="text-center">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 flex items-center justify-center">
+                      <Timer className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground stroke-[1.5]" />
+                    </div>
+                    <p className="text-xs sm:text-sm font-medium text-foreground">Prep time:</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">15 min</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 flex items-center justify-center">
+                      <Clock className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground stroke-[1.5]" />
+                    </div>
+                    <p className="text-xs sm:text-sm font-medium text-foreground">Cook Time:</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">{recipe.cookTime}</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 flex items-center justify-center">
+                      <Users className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground stroke-[1.5]" />
+                    </div>
+                    <p className="text-xs sm:text-sm font-medium text-foreground">Servings:</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">{recipe.servings}</p>
+                  </div>
+                </div>
 
-              {/* Cook Info */}
-              <div className="glass-card rounded-xl p-6">
-                <h3 className="font-display font-semibold mb-4 flex items-center gap-2">
-                  <ChefHat className="h-5 w-5 text-primary" />
-                  Quick Info
-                </h3>
-                <dl className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Cook Time</dt>
-                    <dd className="font-medium">{recipe.cookTime}</dd>
+                {/* Recipe Image */}
+                <div className="relative mb-8">
+                  <div className="aspect-[4/3] overflow-hidden rounded-sm shadow-md">
+                    <img
+                      src={recipe.image}
+                      alt={recipe.title}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                  <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Servings</dt>
-                    <dd className="font-medium">{recipe.servings}</dd>
+                  {/* Action Buttons */}
+                  <div className="absolute top-3 right-3 flex gap-2">
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className="rounded-full bg-background/90 backdrop-blur-sm hover:bg-background shadow-md h-8 w-8"
+                      onClick={handleSave}
+                    >
+                      <Bookmark className="h-4 w-4 text-foreground" />
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className="rounded-full bg-background/90 backdrop-blur-sm hover:bg-background shadow-md h-8 w-8"
+                    >
+                      <Share2 className="h-4 w-4 text-foreground" />
+                    </Button>
                   </div>
-                  <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Difficulty</dt>
-                    <dd className="font-medium">{recipe.difficulty}</dd>
+                </div>
+
+                {/* Preparation Section */}
+                <h2 className="font-display text-xl sm:text-2xl font-semibold text-foreground mb-6 italic">
+                  Preparation
+                </h2>
+                <div className="space-y-4 text-foreground/90 font-body text-sm sm:text-base leading-relaxed">
+                  {recipe.instructions.map((instruction, index) => (
+                    <p key={index}>
+                      {instruction}
+                    </p>
+                  ))}
+                </div>
+
+                {/* Author Attribution */}
+                <div className="mt-8 pt-6 border-t border-border/50 flex items-center gap-3">
+                  <img
+                    src={recipe.author.avatar}
+                    alt={recipe.author.name}
+                    className="w-10 h-10 rounded-full object-cover ring-2 ring-primary/20"
+                  />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Recipe by</p>
+                    <p className="font-display font-medium text-foreground text-sm">{recipe.author.name}</p>
                   </div>
-                  <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Category</dt>
-                    <dd className="font-medium">{recipe.category}</dd>
-                  </div>
-                </dl>
+                </div>
               </div>
+            </div>
+
+            {/* Page Number / Category Badge */}
+            <div className="mt-10 pt-6 border-t border-border/30 flex justify-between items-center">
+              <span className="text-xs text-muted-foreground font-display tracking-widest uppercase">
+                {recipe.category}
+              </span>
+              <span className="text-xs text-muted-foreground italic">
+                {recipe.difficulty}
+              </span>
             </div>
           </div>
         </div>
