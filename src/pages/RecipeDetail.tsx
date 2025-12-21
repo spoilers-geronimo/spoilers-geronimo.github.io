@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -16,8 +16,6 @@ const RecipeDetail = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [userRating, setUserRating] = useState(0);
-  const [isFlipping, setIsFlipping] = useState(false);
-  const [flipDirection, setFlipDirection] = useState<'next' | 'prev' | null>(null);
 
   const recipe = mockRecipes.find((r) => r.id === id);
   const currentIndex = mockRecipes.findIndex((r) => r.id === id);
@@ -27,24 +25,8 @@ const RecipeDetail = () => {
   const handleNavigate = (direction: 'next' | 'prev') => {
     const targetRecipe = direction === 'next' ? nextRecipe : prevRecipe;
     if (!targetRecipe) return;
-
-    setFlipDirection(direction);
-    setIsFlipping(true);
-
-    setTimeout(() => {
-      navigate(`/recipe/${targetRecipe.id}`);
-    }, 400);
+    navigate(`/recipe/${targetRecipe.id}`);
   };
-
-  useEffect(() => {
-    if (isFlipping) {
-      const timer = setTimeout(() => {
-        setIsFlipping(false);
-        setFlipDirection(null);
-      }, 800);
-      return () => clearTimeout(timer);
-    }
-  }, [id, isFlipping]);
 
   if (!recipe) {
     return (
@@ -87,50 +69,45 @@ const RecipeDetail = () => {
         onLogout={() => setIsLoggedIn(false)}
       />
 
-      <main className="flex-1 bg-wood-pattern py-6 sm:py-10 lg:py-14">
-        <div className="container max-w-6xl">
+      <main className="flex-1 bg-wood-pattern py-4 sm:py-6">
+        <div className="container">
           {/* Back Button */}
           <Link
             to="/recipes"
-            className="inline-flex items-center gap-2 text-primary-foreground/90 hover:text-primary-foreground transition-colors mb-6 bg-brown-warm/80 px-4 py-2 rounded-full backdrop-blur-sm text-sm"
+            className="inline-flex items-center gap-2 text-primary-foreground/90 hover:text-primary-foreground transition-colors mb-4 bg-brown-warm/80 px-4 py-2 rounded-full backdrop-blur-sm text-sm"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Recipes
           </Link>
 
           {/* Open Book Container */}
-          <div className="relative perspective-1000">
+          <div className="relative">
             {/* Book Navigation */}
-            <div className="absolute -left-4 sm:-left-8 top-1/2 -translate-y-1/2 z-20">
+            <div className="absolute -left-2 sm:-left-4 top-1/2 -translate-y-1/2 z-20">
               <Button
                 variant="secondary"
                 size="icon"
                 className="rounded-full bg-background/90 shadow-lg hover:bg-background h-10 w-10 sm:h-12 sm:w-12 disabled:opacity-30"
                 onClick={() => handleNavigate('prev')}
-                disabled={!prevRecipe || isFlipping}
+                disabled={!prevRecipe}
               >
                 <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6 text-foreground" />
               </Button>
             </div>
-            <div className="absolute -right-4 sm:-right-8 top-1/2 -translate-y-1/2 z-20">
+            <div className="absolute -right-2 sm:-right-4 top-1/2 -translate-y-1/2 z-20">
               <Button
                 variant="secondary"
                 size="icon"
                 className="rounded-full bg-background/90 shadow-lg hover:bg-background h-10 w-10 sm:h-12 sm:w-12 disabled:opacity-30"
                 onClick={() => handleNavigate('next')}
-                disabled={!nextRecipe || isFlipping}
+                disabled={!nextRecipe}
               >
                 <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6 text-foreground" />
               </Button>
             </div>
 
             {/* The Open Book */}
-            <div 
-              className={`
-                open-book relative
-                ${isFlipping ? (flipDirection === 'next' ? 'animate-page-flip-next' : 'animate-page-flip-prev') : 'animate-book-open'}
-              `}
-            >
+            <div className="open-book relative">
               {/* Book Spine Shadow */}
               <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-8 bg-gradient-to-r from-black/10 via-black/20 to-black/10 z-10 pointer-events-none hidden lg:block" />
               
