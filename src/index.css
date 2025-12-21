@@ -122,30 +122,76 @@
       linear-gradient(180deg, hsl(25, 30%, 40%) 0%, hsl(25, 30%, 30%) 100%);
   }
 
-  /* Recipe book page styling */
-  .recipe-book-page {
-    box-shadow: 
-      0 1px 1px hsl(var(--foreground) / 0.05),
-      0 2px 2px hsl(var(--foreground) / 0.05),
-      0 4px 4px hsl(var(--foreground) / 0.05),
-      0 8px 8px hsl(var(--foreground) / 0.05),
-      0 16px 16px hsl(var(--foreground) / 0.05),
-      0 32px 32px hsl(var(--foreground) / 0.05);
+  /* 3D Perspective for book */
+  .perspective-1000 {
+    perspective: 2000px;
   }
 
-  .recipe-book-page::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 5%;
-    bottom: 5%;
-    width: 1px;
-    background: linear-gradient(
-      180deg,
-      transparent 0%,
-      hsl(var(--border)) 20%,
-      hsl(var(--border)) 80%,
-      transparent 100%
-    );
+  /* Open book styling */
+  .open-book {
+    transform-style: preserve-3d;
+    box-shadow: 
+      0 2px 4px hsl(var(--foreground) / 0.05),
+      0 4px 8px hsl(var(--foreground) / 0.05),
+      0 8px 16px hsl(var(--foreground) / 0.08),
+      0 16px 32px hsl(var(--foreground) / 0.08),
+      0 32px 64px hsl(var(--foreground) / 0.1);
   }
+
+  /* Book page styling */
+  .book-page-left {
+    background: linear-gradient(90deg, hsl(var(--background)) 0%, hsl(var(--muted) / 0.3) 100%);
+  }
+
+  .book-page-right {
+    background: linear-gradient(270deg, hsl(var(--background)) 0%, hsl(var(--muted) / 0.3) 100%);
+  }
+}
+
+/* Book animations */
+@keyframes book-open {
+  0% {
+    transform: rotateY(-15deg) scale(0.9);
+    opacity: 0;
+  }
+  100% {
+    transform: rotateY(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes page-flip-next {
+  0% {
+    transform: rotateY(0deg);
+  }
+  50% {
+    transform: rotateY(-8deg);
+  }
+  100% {
+    transform: rotateY(0deg);
+  }
+}
+
+@keyframes page-flip-prev {
+  0% {
+    transform: rotateY(0deg);
+  }
+  50% {
+    transform: rotateY(8deg);
+  }
+  100% {
+    transform: rotateY(0deg);
+  }
+}
+
+.animate-book-open {
+  animation: book-open 0.6s ease-out forwards;
+}
+
+.animate-page-flip-next {
+  animation: page-flip-next 0.8s ease-in-out;
+}
+
+.animate-page-flip-prev {
+  animation: page-flip-prev 0.8s ease-in-out;
 }
