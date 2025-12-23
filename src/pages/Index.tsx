@@ -6,8 +6,8 @@ const Index = () => {
     return (
         <div className="flex flex-col">
             <HeroSection />
-            <FeaturedRecipes />
             <CategorySection />
+            <FeaturedRecipes />
         </div>
     );
 };

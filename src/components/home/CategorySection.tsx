@@ -43,10 +43,11 @@ export const CategorySection = () => {
         '#483D8B', // DarkSlateBlue
     ];
 
+
     return (
-        <section className="py-10">
+        <section className="py-20">
             <div className="container">
-                <div className="mb-12">
+                <div className="mb-20">
                     <h2 className="font-display text-3xl sm:text-4xl font-bold mb-2">
                         Explore by <span className="text-primary">Category</span>
                     </h2>
@@ -55,33 +56,33 @@ export const CategorySection = () => {
                     </p>
                 </div>
 
-                {/* Bookshelf Container - Now supporting wrapping for responsiveness */}
-                <div className="relative w-full max-w-12xl mx-auto px-1 [perspective:30000px]">
+                {/* Bookshelf Container */}
+                <div className="relative w-full [perspective:30000px]">
                     {/* Shelf Surface (Visual only, behind books) */}
-                    <div className="absolute bottom-0 left-0 right-0 h-4 bg-[#e0c097] [transform:translateZ(-20px)] rounded-sm shadow-xl z-0 hidden lg:block" style={{ boxShadow: '0 15px 30px rgba(0,0,0)' }}></div>
+                    <div className="absolute bottom-0 left-0 right-0 h-4 bg-[#e0c077] [transform:translateZ(-10px)] rounded-sm shadow-xl hidden lg:block" style={{ boxShadow: '0 20px 30px rgba(0,0,0)' }}></div>
 
-                    <div className="flex flex-wrap justify-center items-end gap-x-8 gap-y-16 lg:gap-x-12 px-4 pb-4">
+                    <div className="flex flex-wrap justify-between sm:justify-center items-end gap-x-2 gap-y-10 sm:gap-x-8 sm:gap-y-16 lg:gap-x-12 px-0 sm:px-4 pb-4">
                         {categories.map((category, index) => {
                             const color = bookColors[index % bookColors.length];
                             return (
                                 <Link
                                     key={category.name}
                                     to={`/recipes?category=${category.name.toLowerCase()}`}
-                                    className="group relative w-36 sm:w-44 aspect-[3/4] [transform-style:preserve-3d] transition-transform duration-500 ease-out hover:-translate-y-4 hover:[transform:rotateY(45deg)] cursor-pointer"
+                                    className="group relative w-[30%] sm:w-44 aspect-[3/4] [transform-style:preserve-3d] transition-transform duration-500 ease-out hover:[transform:rotateY(45deg)_translateY(-20px)] cursor-pointer"
                                 >
                                     {/* Book Spine (Left side) */}
                                     <div
-                                        className="absolute left-0 top-0 bottom-0 w-10 origin-left [transform:rotateY(90deg)] flex items-center justify-center overflow-hidden border-r border-black/10"
+                                        className="absolute left-0 top-0 bottom-0 w-6 sm:w-10 origin-left [transform:rotateY(90deg)] flex items-center justify-center overflow-hidden border-r border-black/10"
                                         style={{ backgroundColor: color }}
                                     >
-                                        <span className="text-white/80 font-serif text-sm tracking-widest whitespace-nowrap rotate-90 font-bold uppercase">
+                                        <span className="text-white/80 font-serif text-[10px] sm:text-sm tracking-widest whitespace-nowrap rotate-90 font-bold uppercase">
                                             {category.name}
                                         </span>
                                     </div>
 
                                     {/* Book Cover (Front) */}
                                     <div
-                                        className="absolute inset-0 rounded-r-md shadow-2xl [backface-visibility:hidden] origin-left overflow-hidden bg-cover bg-center border-l-2 border-white/10"
+                                        className="absolute inset-0 rounded-r-sm sm:rounded-r-md shadow-2xl [backface-visibility:hidden] origin-left overflow-hidden bg-cover bg-center border-l-2 border-white/10"
                                         style={{ backgroundImage: `url(${category.image})` }}
                                     >
                                         <div
@@ -91,13 +92,13 @@ export const CategorySection = () => {
                                         <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent" />
 
                                         {/* Cover Content */}
-                                        <div className="absolute inset-0 p-4 flex flex-col justify-between text-center select-none">
-                                            <div className="border border-white/30 h-full w-full p-2 flex flex-col items-center justify-center rounded-sm">
-                                                <h3 className="font-display font-bold text-xl sm:text-2xl text-white drop-shadow-md mb-2 leading-tight">
+                                        <div className="absolute inset-0 p-2 sm:p-4 flex flex-col justify-between text-center select-none">
+                                            <div className="border border-white/30 h-full w-full p-1 sm:p-2 flex flex-col items-center justify-center rounded-sm">
+                                                <h3 className="font-display font-bold text-sm sm:text-2xl text-white drop-shadow-md mb-1 sm:mb-2 leading-tight break-words">
                                                     {category.name}
                                                 </h3>
-                                                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                                                    <span className="text-white text-xs font-semibold">{category.count}</span>
+                                                <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                                                    <span className="text-white text-[10px] sm:text-xs font-semibold">{category.count}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -105,7 +106,7 @@ export const CategorySection = () => {
 
                                     {/* Book Pages (Right side) */}
                                     <div
-                                        className="absolute right-0 top-1 bottom-1 w-3 bg-[#fff9f0] [transform:rotateY(90deg)] origin-right shadow-inner"
+                                        className="absolute right-0 top-1 bottom-1 w-2 sm:w-3 bg-[#fff9f0] [transform:rotateY(90deg)] origin-right shadow-inner"
                                         style={{
                                             backgroundImage: 'linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px)',
                                             backgroundSize: '2px 100%'
@@ -113,7 +114,7 @@ export const CategorySection = () => {
                                     />
 
                                     {/* Shadow */}
-                                    <div className="absolute bottom-[-15px] left-2 right-2 h-4 bg-black/40 blur-md rounded-full transform scale-x-90 transition-all duration-500 group-hover:scale-x-100 group-hover:bg-black/20" />
+                                    <div className="absolute bottom-[-15px] left-2 right-2 h-4 bg-black/40 blur-md rounded-full transform scale-x-90 transition-all duration-500 group-hover:translate-y-6 group-hover:scale-x-75 group-hover:bg-black/10 group-hover:blur-lg" />
 
                                 </Link>
                             );
@@ -121,13 +122,12 @@ export const CategorySection = () => {
                     </div>
 
                     {/* Shelf Front Face (Visual) */}
-                    {/* <div className="relative h-6 mt-0 bg-[#d4b48e] rounded-sm shadow-sm z-20 mx-auto max-w-[95%] hidden lg:block border-t border-[#c19b6e]"></div> */}
-                    <div className="relative h-12 bg-[#c19b6e] mx-auto max-w-[98%] shadow-xl [transform:perspective(2000px)_rotateX(12deg)] origin-top hidden lg:block"></div>
+                    {/* <div className="relative h-12 bg-[#c19b6e] mx-auto max-w-[98%] shadow-xl [transform:perspective(2000px)_rotateX(12deg)] origin-top hidden lg:block"></div> */}
 
                 </div>
 
                 {/* Mobile Shelf (Simpler background for mobile) */}
-                <div className="lg:hidden absolute bottom-0 left-0 right-0 h-4 bg-[#d4b48e] shadow-inner"></div>
+                {/* <div className="lg:hidden absolute bottom-0 left-0 right-0 h-4 bg-[#d4b48e] shadow-inner"></div> */}
             </div>
         </section>
     );
