@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -33,6 +33,24 @@ const CreateRecipe = () => {
   });
   const [ingredients, setIngredients] = useState(['']);
   const [instructions, setInstructions] = useState(['']);
+  const [focusIngredientIndex, setFocusIngredientIndex] = useState<number | null>(null);
+  const [focusInstructionIndex, setFocusInstructionIndex] = useState<number | null>(null);
+  const ingredientRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const instructionRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
+
+  useEffect(() => {
+    if (focusIngredientIndex !== null && ingredientRefs.current[focusIngredientIndex]) {
+      ingredientRefs.current[focusIngredientIndex]?.focus();
+      setFocusIngredientIndex(null);
+    }
+  }, [focusIngredientIndex, ingredients]);
+
+  useEffect(() => {
+    if (focusInstructionIndex !== null && instructionRefs.current[focusInstructionIndex]) {
+      instructionRefs.current[focusInstructionIndex]?.focus();
+      setFocusInstructionIndex(null);
+    }
+  }, [focusInstructionIndex, instructions]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -45,7 +63,10 @@ const CreateRecipe = () => {
     }
   };
 
-  const addIngredient = () => setIngredients([...ingredients, '']);
+  const addIngredient = () => {
+    setIngredients([...ingredients, '']);
+    setFocusIngredientIndex(ingredients.length);
+  };
   const removeIngredient = (index: number) => {
     setIngredients(ingredients.filter((_, i) => i !== index));
   };
@@ -55,7 +76,10 @@ const CreateRecipe = () => {
     setIngredients(updated);
   };
 
-  const addInstruction = () => setInstructions([...instructions, '']);
+  const addInstruction = () => {
+    setInstructions([...instructions, '']);
+    setFocusInstructionIndex(instructions.length);
+  };
   const removeInstruction = (index: number) => {
     setInstructions(instructions.filter((_, i) => i !== index));
   };
@@ -233,6 +257,7 @@ const CreateRecipe = () => {
                         <div key={index} className="flex items-center gap-2">
                           <span className="text-primary text-xs">•</span>
                           <Input
+                            ref={(el) => { ingredientRefs.current[index] = el; }}
                             placeholder={`Ingredient ${index + 1}`}
                             value={ingredient}
                             onChange={(e) => updateIngredient(index, e.target.value)}
@@ -332,6 +357,7 @@ const CreateRecipe = () => {
                         </span>
                         <div className="flex-1 flex gap-2">
                           <Textarea
+                            ref={(el) => { instructionRefs.current[index] = el; }}
                             placeholder={`Describe step ${index + 1}...`}
                             value={instruction}
                             onChange={(e) => updateInstruction(index, e.target.value)}
