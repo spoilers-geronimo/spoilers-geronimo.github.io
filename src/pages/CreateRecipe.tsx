@@ -236,6 +236,12 @@ const CreateRecipe = () => {
                             placeholder={`Ingredient ${index + 1}`}
                             value={ingredient}
                             onChange={(e) => updateIngredient(index, e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                addIngredient();
+                              }
+                            }}
                             className="h-8 text-sm bg-background/50"
                           />
                           {ingredients.length > 1 && (
@@ -329,6 +335,12 @@ const CreateRecipe = () => {
                             placeholder={`Describe step ${index + 1}...`}
                             value={instruction}
                             onChange={(e) => updateInstruction(index, e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                addInstruction();
+                              }
+                            }}
                             rows={2}
                             className="text-sm bg-background/50 resize-none"
                           />
