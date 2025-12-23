@@ -12,8 +12,10 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { categories } from '@/data/mockRecipes';
-import { Plus, X, Upload, ArrowLeft, Clock, Timer, Users, ChefHat } from 'lucide-react';
+import { Plus, X, Upload, ArrowLeft, Clock, Timer, Users, ChefHat, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { tables, DATABASE_ID, RECIPES_COLLECTION_ID, account, ID } from '@/lib/appwrite';
+import { Models } from 'appwrite';
 
 
 interface MainLayoutContext {
@@ -39,8 +41,23 @@ const CreateRecipe = () => {
     const [instructions, setInstructions] = useState(['']);
     const [focusIngredientIndex, setFocusIngredientIndex] = useState<number | null>(null);
     const [focusInstructionIndex, setFocusInstructionIndex] = useState<number | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [currentUser, setCurrentUser] = useState<Models.User<Models.Preferences> | null>(null);
     const ingredientRefs = useRef<(HTMLInputElement | null)[]>([]);
     const instructionRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
+
+    // Fetch current user on mount
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const user = await account.get();
+                setCurrentUser(user);
+            } catch (error) {
+                console.error('Failed to fetch user:', error);
+            }
+        };
+        fetchUser();
+    }, []);
 
     useEffect(() => {
         if (focusIngredientIndex !== null && ingredientRefs.current[focusIngredientIndex]) {
@@ -93,13 +110,82 @@ const CreateRecipe = () => {
         setInstructions(updated);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        toast({
-            title: "Recipe submitted!",
-            description: "Your recipe has been published successfully.",
-        });
-    }
+
+        // Validate ingredients and instructions
+        const validIngredients = Array.from(ingredients.filter(ing => ing.trim() !== ''));
+        console.log(validIngredients)
+        const validInstructions = Array.from(instructions.filter(inst => inst.trim() !== ''));
+        console.log(typeof (validIngredients))
+        if (validIngredients.length === 0) {
+            toast({
+                title: "Missing ingredients",
+                description: "Please add at least one ingredient.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        if (validInstructions.length === 0) {
+            toast({
+                title: "Missing instructions",
+                description: "Please add at least one instruction step.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            // Prepare author data
+            const authorData = {
+                name: currentUser?.name || 'Anonymous Chef',
+                avatar: '',
+            };
+
+            console.log(formData)
+
+            // Create recipe document
+            await tables.createRow({
+                databaseId: DATABASE_ID,
+                tableId: RECIPES_COLLECTION_ID,
+                rowId: ID.unique(),
+                data: {
+                    title: formData.title,
+                    description: formData.description,
+                    recipeImageUrl: formData.imagePreview || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800',
+                    cookTimeMinutes: parseInt(formData.cookTime.split("min")[0]),
+                    prepTimeMinutes: parseInt(formData.prepTime.split("min")[0]),
+                    totalTimeMinutes: parseInt(formData.cookTime.split("min")[0]) + parseInt(formData.prepTime.split("min")[0]),
+                    servings: parseInt(formData.servings),
+                    difficultyLevel: formData.difficulty.toLowerCase(),
+                    ingredients: ingredients.toLocaleString(),
+                    instructions: instructions.toLocaleString(),
+                    author: JSON.stringify(authorData),
+                    // category: formData.category,
+                }
+            });
+
+            toast({
+                title: "Recipe published!",
+                description: "Your recipe has been successfully shared with the community.",
+            });
+
+            // Navigate to recipes page
+            navigate('/recipes');
+        } catch (error) {
+            console.error('Failed to create recipe:', error);
+            toast({
+                title: "Failed to publish recipe",
+                description: "There was an error publishing your recipe. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
     // const [ingredients, setIngredients] = useState(['']);
     // const [instructions, setInstructions] = useState(['']);
 
@@ -423,10 +509,23 @@ const CreateRecipe = () => {
 
                                 {/* Submit Buttons */}
                                 <div className="flex gap-3 pt-4 border-t border-border/30">
-                                    <Button type="submit" size="lg" className="flex-1">
-                                        Publish Recipe
+                                    <Button type="submit" size="lg" className="flex-1" disabled={isSubmitting}>
+                                        {isSubmitting ? (
+                                            <>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                Publishing...
+                                            </>
+                                        ) : (
+                                            'Publish Recipe'
+                                        )}
                                     </Button>
-                                    <Button type="button" variant="outline" size="lg" onClick={() => navigate('/recipes')}>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="lg"
+                                        onClick={() => navigate('/recipes')}
+                                        disabled={isSubmitting}
+                                    >
                                         Cancel
                                     </Button>
                                 </div>
