@@ -13,4 +13,4 @@ export const tables = new TablesDB(client);
 export const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
 export const RECIPES_COLLECTION_ID = import.meta.env.VITE_APPWRITE_RECIPES_COLLECTION_ID;
 
-export { ID } from 'appwrite';
+export { ID, Permission, Role } from 'appwrite';

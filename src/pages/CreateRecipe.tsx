@@ -14,7 +14,7 @@ import {
 import { categories } from '@/data/mockRecipes';
 import { Plus, X, Upload, ArrowLeft, Clock, Timer, Users, ChefHat, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { tables, DATABASE_ID, RECIPES_COLLECTION_ID, account, ID } from '@/lib/appwrite';
+import { tables, DATABASE_ID, RECIPES_COLLECTION_ID, account, ID, Permission, Role } from '@/lib/appwrite';
 import { Models } from 'appwrite';
 
 
@@ -139,6 +139,16 @@ const CreateRecipe = () => {
         setIsSubmitting(true);
 
         try {
+            // Ensure user is logged in
+            if (!currentUser) {
+                toast({
+                    title: "Authentication required",
+                    description: "Please log in to create a recipe.",
+                    variant: "destructive",
+                });
+                return;
+            }
+
             // Prepare author data
             const authorData = {
                 name: currentUser?.name || 'Anonymous Chef',
@@ -146,9 +156,12 @@ const CreateRecipe = () => {
             };
 
             console.log(formData)
+            console.log('Current user:', currentUser);
 
             // Create recipe document
-            await tables.createRow({
+            // Note: Using collection-level permissions configured in Appwrite
+            // Do not pass permissions parameter when collection uses collection-level permissions
+            const result = await tables.createRow({
                 databaseId: DATABASE_ID,
                 tableId: RECIPES_COLLECTION_ID,
                 rowId: ID.unique(),
@@ -163,10 +176,12 @@ const CreateRecipe = () => {
                     difficultyLevel: formData.difficulty.toLowerCase(),
                     ingredients: ingredients.toLocaleString(),
                     instructions: instructions.toLocaleString(),
-                    author: JSON.stringify(authorData),
+                    authorName: authorData.name
                     // category: formData.category,
                 }
             });
+
+            console.log('Recipe created successfully:', result);
 
             toast({
                 title: "Recipe published!",
@@ -175,11 +190,23 @@ const CreateRecipe = () => {
 
             // Navigate to recipes page
             navigate('/recipes');
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to create recipe:', error);
+
+            // Provide more specific error messages
+            let errorMessage = "There was an error publishing your recipe. Please try again.";
+
+            if (error.message) {
+                errorMessage = error.message;
+            }
+
+            if (error.code === 401) {
+                errorMessage = "You are not authorized. Please log in and try again.";
+            }
+
             toast({
                 title: "Failed to publish recipe",
-                description: "There was an error publishing your recipe. Please try again.",
+                description: errorMessage,
                 variant: "destructive",
             });
         } finally {
