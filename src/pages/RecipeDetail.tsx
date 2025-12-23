@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useOutletContext } from 'react-router-dom';
 import { StarRating } from '@/components/recipes/StarRating';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,20 @@ const RecipeDetail = () => {
     const { isLoggedIn, setLoginModalOpen } = useOutletContext<MainLayoutContext>();
     const [userRating, setUserRating] = useState(0);
     const [animationClass, setAnimationClass] = useState<'next' | 'prev' | ''>('');
+    const [contentFadeIn, setContentFadeIn] = useState<'left' | 'right' | 'both'>('both');
+
+    // When recipe changes, determine which page needs to fade in
+    useEffect(() => {
+        // Start with no fade-in
+        setContentFadeIn('both');
+
+        // Small delay to trigger fade-in after navigation
+        const timer = setTimeout(() => {
+            setContentFadeIn('both');
+        }, 50);
+
+        return () => clearTimeout(timer);
+    }, [id]);
 
     const recipe = mockRecipes.find((r) => r.id === id);
     const currentIndex = mockRecipes.findIndex((r) => r.id === id);
@@ -30,6 +44,11 @@ const RecipeDetail = () => {
 
         // Trigger animation
         setAnimationClass(direction);
+
+        // Set which page will show new content after flip
+        // When going next (right page flips), left page will have new content
+        // When going prev (left page flips), right page will have new content
+        setContentFadeIn(direction === 'next' ? 'left' : 'right');
 
         // Wait for animation to finish before navigating
         setTimeout(() => {
@@ -111,7 +130,7 @@ const RecipeDetail = () => {
 
                             <div className="grid lg:grid-cols-2 bg-background shadow-2xl rounded-sm overflow-hidden">
                                 {/* Left Page */}
-                                <div className={`book-page-left relative p-5 sm:p-8 lg:p-10 border-r border-border/30 ${animationClass === 'prev' ? 'animate-page-flip-prev' : ''}`}>
+                                <div className={`book-page-left relative p-5 sm:p-8 lg:p-10 border-r border-border/30 ${animationClass === 'prev' ? 'animate-page-flip-prev' : ''} ${animationClass !== 'prev' && (contentFadeIn === 'left' || contentFadeIn === 'both') ? 'animate-content-fade-in' : ''}`}>
                                     {/* Page texture */}
                                     <div className="absolute inset-0 pointer-events-none opacity-[0.02] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0iIzAwMCIvPjwvc3ZnPg==')]" />
 
@@ -217,7 +236,7 @@ const RecipeDetail = () => {
                                 </div>
 
                                 {/* Right Page */}
-                                <div className={`book-page-right relative p-5 sm:p-8 lg:p-10 bg-background ${animationClass === 'next' ? 'animate-page-flip-next' : ''}`}>
+                                <div className={`book-page-right relative p-5 sm:p-8 lg:p-10 bg-background ${animationClass === 'next' ? 'animate-page-flip-next' : ''} ${animationClass !== 'next' && (contentFadeIn === 'right' || contentFadeIn === 'both') ? 'animate-content-fade-in' : ''}`}>
                                     {/* Page texture */}
                                     <div className="absolute inset-0 pointer-events-none opacity-[0.02] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0iIzAwMCIvPjwvc3ZnPg==')]" />
 
