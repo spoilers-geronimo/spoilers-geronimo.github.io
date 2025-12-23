@@ -116,8 +116,8 @@ const CreateRecipe = () => {
     return (
 
 
-        <main className="flex-1 bg-wood-pattern py-4 sm:py-6">
-            <div className="container">
+        <main className="flex-1 py-4 sm:py-6 kitchen-pattern">
+            <div className="container bg-wood-pattern rounded-xl shadow-xl p-4">
                 {/* Back Button */}
                 <Link
                     to="/recipes"

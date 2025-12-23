@@ -17,6 +17,7 @@ const RecipeDetail = () => {
     const { toast } = useToast();
     const { isLoggedIn, setLoginModalOpen } = useOutletContext<MainLayoutContext>();
     const [userRating, setUserRating] = useState(0);
+    const [animationClass, setAnimationClass] = useState<'next' | 'prev' | ''>('');
 
     const recipe = mockRecipes.find((r) => r.id === id);
     const currentIndex = mockRecipes.findIndex((r) => r.id === id);
@@ -26,7 +27,15 @@ const RecipeDetail = () => {
     const handleNavigate = (direction: 'next' | 'prev') => {
         const targetRecipe = direction === 'next' ? nextRecipe : prevRecipe;
         if (!targetRecipe) return;
-        navigate(`/recipe/${targetRecipe.id}`);
+
+        // Trigger animation
+        setAnimationClass(direction);
+
+        // Wait for animation to finish before navigating
+        setTimeout(() => {
+            setAnimationClass('');
+            navigate(`/recipe/${targetRecipe.id}`);
+        }, 600); // 600ms matches animation duration approx
     };
 
     if (!recipe) {
@@ -102,7 +111,7 @@ const RecipeDetail = () => {
 
                             <div className="grid lg:grid-cols-2 bg-background shadow-2xl rounded-sm overflow-hidden">
                                 {/* Left Page */}
-                                <div className="book-page-left relative p-5 sm:p-8 lg:p-10 border-r border-border/30">
+                                <div className={`book-page-left relative p-5 sm:p-8 lg:p-10 border-r border-border/30 ${animationClass === 'prev' ? 'animate-page-flip-prev' : ''}`}>
                                     {/* Page texture */}
                                     <div className="absolute inset-0 pointer-events-none opacity-[0.02] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0iIzAwMCIvPjwvc3ZnPg==')]" />
 
@@ -208,7 +217,7 @@ const RecipeDetail = () => {
                                 </div>
 
                                 {/* Right Page */}
-                                <div className="book-page-right relative p-5 sm:p-8 lg:p-10 bg-background">
+                                <div className={`book-page-right relative p-5 sm:p-8 lg:p-10 bg-background ${animationClass === 'next' ? 'animate-page-flip-next' : ''}`}>
                                     {/* Page texture */}
                                     <div className="absolute inset-0 pointer-events-none opacity-[0.02] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0iIzAwMCIvPjwvc3ZnPg==')]" />
 
