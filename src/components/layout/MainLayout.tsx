@@ -31,7 +31,7 @@ export const MainLayout = () => {
 
     const handleLogout = async () => {
         try {
-            await account.deleteSession('current');
+            await account.deleteSessions();
             setIsLoggedIn(false);
             toast({
                 title: "Logged out",
