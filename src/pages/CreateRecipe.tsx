@@ -14,7 +14,7 @@ import {
 import { categories } from '@/data/mockRecipes';
 import { Plus, X, Upload, ArrowLeft, Clock, Timer, Users, ChefHat, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { tables, DATABASE_ID, RECIPES_COLLECTION_ID, account, ID, Permission, Role } from '@/lib/appwrite';
+import { tables, DATABASE_ID, RECIPES_COLLECTION_ID, account, ID, Permission, Role, storage, BUCKET_ID } from '@/lib/appwrite';
 import { Models } from 'appwrite';
 
 
@@ -115,9 +115,7 @@ const CreateRecipe = () => {
 
         // Validate ingredients and instructions
         const validIngredients = Array.from(ingredients.filter(ing => ing.trim() !== ''));
-        console.log(validIngredients)
         const validInstructions = Array.from(instructions.filter(inst => inst.trim() !== ''));
-        console.log(typeof (validIngredients))
         if (validIngredients.length === 0) {
             toast({
                 title: "Missing ingredients",
@@ -155,8 +153,31 @@ const CreateRecipe = () => {
                 avatar: '',
             };
 
-            console.log(formData)
-            console.log('Current user:', currentUser);
+            // Upload image to Storage if exists
+            let recipeImageUrl = formData.imagePreview || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800';
+
+            if (formData.image && BUCKET_ID) {
+                try {
+                    const file = await storage.createFile({
+                        bucketId: BUCKET_ID,
+                        fileId: ID.unique(),
+                        file: formData.image
+                    });
+                    // Use getFileView for a stable URL
+                    const fileUrl = storage.getFileView({
+                        bucketId: BUCKET_ID,
+                        fileId: file.$id
+                    });
+                    recipeImageUrl = fileUrl;
+                } catch (uploadError) {
+                    console.error('Failed to upload image:', uploadError);
+                    toast({
+                        title: "Image upload failed",
+                        description: "Your recipe will be published with a default image.",
+                        variant: "destructive",
+                    });
+                }
+            }
 
             // Create recipe document
             // Note: Using collection-level permissions configured in Appwrite
@@ -168,7 +189,7 @@ const CreateRecipe = () => {
                 data: {
                     title: formData.title,
                     description: formData.description,
-                    recipeImageUrl: formData.imagePreview || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800',
+                    recipeImageUrl: recipeImageUrl,
                     cookTimeMinutes: parseInt(formData.cookTime.split("min")[0]),
                     prepTimeMinutes: parseInt(formData.prepTime.split("min")[0]),
                     totalTimeMinutes: parseInt(formData.cookTime.split("min")[0]) + parseInt(formData.prepTime.split("min")[0]),
@@ -176,12 +197,11 @@ const CreateRecipe = () => {
                     difficultyLevel: formData.difficulty.toLowerCase(),
                     ingredients: ingredients.toLocaleString(),
                     instructions: instructions.toLocaleString(),
-                    authorName: authorData.name
-                    // category: formData.category,
+                    authorName: authorData.name,
+                    category: formData.category,
                 }
             });
 
-            console.log('Recipe created successfully:', result);
 
             toast({
                 title: "Recipe published!",

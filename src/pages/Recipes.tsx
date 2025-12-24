@@ -25,6 +25,20 @@ const Recipes = () => {
                     tableId: RECIPES_COLLECTION_ID
                 });
 
+                // Helper to parse strings that might be comma-separated or JSON arrays
+                const parseStringArray = (input: any): string[] => {
+                    if (Array.isArray(input)) return input;
+                    if (typeof input === 'string') {
+                        try {
+                            const parsed = JSON.parse(input);
+                            if (Array.isArray(parsed)) return parsed;
+                        } catch (e) {
+                            return input.split(',').map(s => s.trim()).filter(s => s !== '');
+                        }
+                    }
+                    return [];
+                };
+
                 // Transform AppWrite rows to Recipe type
                 const fetchedRecipes = response.rows.map((row: Models.Row) => {
                     const data = row as any;
@@ -32,13 +46,15 @@ const Recipes = () => {
                         id: row.$id,
                         title: data.title,
                         description: data.description,
-                        image: data.image,
+                        image: data.recipeImageUrl,
                         cookTime: data.cookTime,
+                        prepTime: data.prepTime,
                         servings: data.servings,
-                        difficulty: data.difficulty,
-                        ingredients: data.ingredients,
-                        instructions: data.instructions,
-                        author: data.author ? JSON.parse(data.author) : { name: 'Unknown', avatar: '' },
+                        difficultyLevel: data.difficultyLevel,
+                        ingredients: parseStringArray(data.ingredients),
+                        instructions: parseStringArray(data.instructions),
+                        authorName: data.authorName,
+                        authorAvatar: data.authorAvatar,
                         rating: data.rating,
                         totalRatings: data.totalRatings,
                         category: data.category,

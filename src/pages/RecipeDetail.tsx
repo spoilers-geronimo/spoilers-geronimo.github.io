@@ -1,11 +1,13 @@
-import { useState } from 'react';
-import { useParams, Link, useNavigate, useOutletContext } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, Link, useOutletContext } from 'react-router-dom';
 import { StarRating } from '@/components/recipes/StarRating';
 import { Button } from '@/components/ui/button';
-import { mockRecipes } from '@/data/mockRecipes';
-import { Clock, Timer, Users, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Clock, Timer, Users, ArrowLeft, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import HTMLFlipBook from 'react-pageflip';
+import { tables, DATABASE_ID, RECIPES_COLLECTION_ID } from '@/lib/appwrite';
+import { Recipe } from '@/types/recipe';
+import { Models } from 'appwrite';
 
 interface MainLayoutContext {
     isLoggedIn: boolean;
@@ -14,28 +16,100 @@ interface MainLayoutContext {
 
 const RecipeDetail = () => {
     const { id } = useParams();
-    const navigate = useNavigate();
     const { toast } = useToast();
     const { isLoggedIn, setLoginModalOpen } = useOutletContext<MainLayoutContext>();
     const [userRating, setUserRating] = useState(0);
+    const [recipe, setRecipe] = useState<Recipe | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const recipe = mockRecipes.find((r) => r.id === id);
-    const currentIndex = mockRecipes.findIndex((r) => r.id === id);
-    const prevRecipe = currentIndex > 0 ? mockRecipes[currentIndex - 1] : null;
-    const nextRecipe = currentIndex < mockRecipes.length - 1 ? mockRecipes[currentIndex + 1] : null;
+    useEffect(() => {
+        const fetchRecipe = async () => {
+            if (!id) {
+                setError('No recipe ID provided');
+                setLoading(false);
+                return;
+            }
 
-    const handleNavigate = (direction: 'next' | 'prev') => {
-        const targetRecipe = direction === 'next' ? nextRecipe : prevRecipe;
-        if (!targetRecipe) return;
-        navigate(`/recipe/${targetRecipe.id}`);
-    };
+            try {
+                setLoading(true);
+                setError(null);
 
-    if (!recipe) {
+                const row = await tables.getRow({
+                    databaseId: DATABASE_ID,
+                    tableId: RECIPES_COLLECTION_ID,
+                    rowId: id
+                });
+                // Helper to parse strings that might be comma-separated or JSON arrays
+                const parseStringArray = (input: any): string[] => {
+                    if (Array.isArray(input)) return input;
+                    if (typeof input === 'string') {
+                        try {
+                            const parsed = JSON.parse(input);
+                            if (Array.isArray(parsed)) return parsed;
+                        } catch (e) {
+                            // If not JSON, split by comma
+                            return input.split(',').map(s => s.trim()).filter(s => s !== '');
+                        }
+                    }
+                    return [];
+                };
+
+                // Transform AppWrite row to Recipe type
+                const data = row as any;
+                const fetchedRecipe: Recipe = {
+                    id: row.$id,
+                    title: data.title,
+                    description: data.description,
+                    image: data.recipeImageUrl,
+                    cookTime: data.cookTimeMinutes + " mins",
+                    prepTime: data.prepTimeMinutes + " mins",
+                    servings: data.servings,
+                    difficultyLevel: data.difficultyLevel,
+                    ingredients: parseStringArray(data.ingredients),
+                    instructions: parseStringArray(data.instructions),
+                    authorName: data.authorName,
+                    authorAvatar: data.authorAvatar,
+                    rating: data.rating,
+                    totalRatings: data.totalRatings,
+                    category: data.category,
+                    createdAt: row.$createdAt,
+                };
+
+                setRecipe(fetchedRecipe);
+            } catch (err) {
+                console.error('Failed to fetch recipe:', err);
+                setError('Failed to load recipe. Please try again later.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchRecipe();
+    }, [id]);
+
+    if (loading) {
         return (
             <div className="min-h-screen flex flex-col">
                 <main className="flex-1 flex items-center justify-center">
                     <div className="text-center">
-                        <h1 className="font-display text-3xl font-bold mb-4">Recipe Not Found</h1>
+                        <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+                        <p className="text-muted-foreground">Loading recipe...</p>
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
+    if (error || !recipe) {
+        return (
+            <div className="min-h-screen flex flex-col">
+                <main className="flex-1 flex items-center justify-center">
+                    <div className="text-center">
+                        <h1 className="font-display text-3xl font-bold mb-4">
+                            {error ? 'Error Loading Recipe' : 'Recipe Not Found'}
+                        </h1>
+                        {error && <p className="text-destructive mb-4">{error}</p>}
                         <Link to="/recipes">
                             <Button>Back to Recipes</Button>
                         </Link>
@@ -72,30 +146,6 @@ const RecipeDetail = () => {
 
                     {/* Open Book Container */}
                     <div className="relative">
-                        {/* Book Navigation */}
-                        <div className="absolute -left-2 sm:-left-4 top-1/2 -translate-y-1/2 z-20">
-                            <Button
-                                variant="secondary"
-                                size="icon"
-                                className="rounded-full bg-background/90 shadow-lg hover:bg-background h-10 w-10 sm:h-12 sm:w-12 disabled:opacity-30"
-                                onClick={() => handleNavigate('prev')}
-                                disabled={!prevRecipe}
-                            >
-                                <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6 text-foreground" />
-                            </Button>
-                        </div>
-                        <div className="absolute -right-2 sm:-right-4 top-1/2 -translate-y-1/2 z-20">
-                            <Button
-                                variant="secondary"
-                                size="icon"
-                                className="rounded-full bg-background/90 shadow-lg hover:bg-background h-10 w-10 sm:h-12 sm:w-12 disabled:opacity-30"
-                                onClick={() => handleNavigate('next')}
-                                disabled={!nextRecipe}
-                            >
-                                <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6 text-foreground" />
-                            </Button>
-                        </div>
-
                         {/* The Open Book */}
                         <div className="open-book relative">
                             {/* Book Spine Shadow */}
@@ -142,7 +192,7 @@ const RecipeDetail = () => {
                                         <div className="text-center">
                                             <Timer className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 text-muted-foreground stroke-[1.5]" />
                                             <p className="text-[10px] sm:text-xs font-medium text-foreground">Prep</p>
-                                            <p className="text-[10px] sm:text-xs text-muted-foreground">15 min</p>
+                                            <p className="text-[10px] sm:text-xs text-muted-foreground">{recipe.prepTime}</p>
                                         </div>
                                         <div className="text-center">
                                             <Clock className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 text-muted-foreground stroke-[1.5]" />
@@ -193,21 +243,17 @@ const RecipeDetail = () => {
 
                                     {/* Author */}
                                     <div className="flex items-center gap-3 pt-3 border-t border-border/50">
-                                        <img
+                                        {/* <img
                                             src={recipe.author.avatar}
                                             alt={recipe.author.name}
                                             className="w-8 h-8 rounded-full object-cover ring-2 ring-primary/20"
-                                        />
+                                        /> */}
                                         <div>
                                             <p className="text-[10px] text-muted-foreground">Recipe by</p>
-                                            <p className="font-display font-medium text-foreground text-xs">{recipe.author.name}</p>
+                                            <p className="font-display font-medium text-foreground text-xs">{recipe.authorName}</p>
                                         </div>
                                     </div>
 
-                                    {/* Page Number */}
-                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-                                        <span className="text-xs text-muted-foreground/60 font-display">{currentIndex * 2 + 1}</span>
-                                    </div>
                                 </div>
 
                                 {/* Right Page */}
@@ -253,24 +299,13 @@ const RecipeDetail = () => {
                                             {recipe.category}
                                         </span>
                                         <span className="text-xs text-muted-foreground italic">
-                                            Difficulty: {recipe.difficulty}
+                                            Difficulty: {recipe.difficultyLevel}
                                         </span>
                                     </div>
 
-                                    {/* Page Number */}
-                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-                                        <span className="text-xs text-muted-foreground/60 font-display">{currentIndex * 2 + 2}</span>
-                                    </div>
                                 </div>
                                 {/* </HTMLFlipBook> */}
                             </div>
-                        </div>
-
-                        {/* Recipe Navigation Info */}
-                        <div className="flex justify-between items-center mt-4 px-4 text-xs text-primary-foreground/70">
-                            <span>{prevRecipe ? `← ${prevRecipe.title}` : ''}</span>
-                            <span className="font-display">Page {currentIndex + 1} of {mockRecipes.length}</span>
-                            <span>{nextRecipe ? `${nextRecipe.title} →` : ''}</span>
                         </div>
                     </div>
                 </div>
