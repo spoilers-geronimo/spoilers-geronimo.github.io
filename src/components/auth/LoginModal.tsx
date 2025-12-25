@@ -32,7 +32,7 @@ export const LoginModal = ({ open, onOpenChange, onLogin }: LoginModalProps) => 
             await account.createEmailPasswordSession(email, password);
             toast({
                 title: "Login successful",
-                description: "Welcome back to SavoryStories!",
+                description: "Welcome back to Kitchen Delight!",
             });
             onLogin();
             onOpenChange(false);

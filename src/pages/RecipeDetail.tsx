@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Clock, Timer, Users, ArrowLeft, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import HTMLFlipBook from 'react-pageflip';
-import { tables, DATABASE_ID, RECIPES_COLLECTION_ID } from '@/lib/appwrite';
+import { tables, DATABASE_ID, RECIPES_COLLECTION_ID, RATINGS_COLLECTION_ID, account, Query, ID } from '@/lib/appwrite';
 import { Recipe } from '@/types/recipe';
 import { Models } from 'appwrite';
 
@@ -22,9 +22,12 @@ const RecipeDetail = () => {
     const [recipe, setRecipe] = useState<Recipe | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [currentUser, setCurrentUser] = useState<Models.User<Models.Preferences> | null>(null);
+    const [existingRatingId, setExistingRatingId] = useState<string | null>(null);
+    const [isRating, setIsRating] = useState(false);
 
     useEffect(() => {
-        const fetchRecipe = async () => {
+        const fetchData = async () => {
             if (!id) {
                 setError('No recipe ID provided');
                 setLoading(false);
@@ -35,11 +38,46 @@ const RecipeDetail = () => {
                 setLoading(true);
                 setError(null);
 
+                // Fetch current user if logged in
+                let user: Models.User<Models.Preferences> | null = null;
+                if (isLoggedIn) {
+                    try {
+                        user = await account.get();
+                        setCurrentUser(user);
+                    } catch (e) {
+                        console.error('Failed to get user session:', e);
+                    }
+                }
+
+                // Fetch recipe
                 const row = await tables.getRow({
                     databaseId: DATABASE_ID,
                     tableId: RECIPES_COLLECTION_ID,
                     rowId: id
                 });
+
+                // Fetch user's existing rating if logged in
+                if (user) {
+                    try {
+                        const ratingsRows = await tables.listRows({
+                            databaseId: DATABASE_ID,
+                            tableId: RATINGS_COLLECTION_ID,
+                            queries: [
+                                Query.equal('userId', user.$id),
+                                Query.equal('recipeId', id)
+                            ]
+                        });
+
+                        if (ratingsRows.total > 0) {
+                            const userRatingDoc = ratingsRows.rows[0];
+                            setExistingRatingId(userRatingDoc.$id);
+                            setUserRating(userRatingDoc.rating);
+                        }
+                    } catch (e) {
+                        console.error('Failed to fetch user rating:', e);
+                    }
+                }
+
                 // Helper to parse strings that might be comma-separated or JSON arrays
                 const parseStringArray = (input: any): string[] => {
                     if (Array.isArray(input)) return input;
@@ -49,7 +87,8 @@ const RecipeDetail = () => {
                             if (Array.isArray(parsed)) return parsed;
                         } catch (e) {
                             // If not JSON, split by comma
-                            return input.split(',').map(s => s.trim()).filter(s => s !== '');
+                            const delimiter = input.includes('|') ? '|' : ',';
+                            return input.split(delimiter).map(s => s.trim()).filter(s => s !== '');
                         }
                     }
                     return [];
@@ -68,10 +107,12 @@ const RecipeDetail = () => {
                     difficultyLevel: data.difficultyLevel,
                     ingredients: parseStringArray(data.ingredients),
                     instructions: parseStringArray(data.instructions),
+                    author: data.authorId || data.$permissions?.[0]?.split('"')[1] || '',
+                    authorId: data.authorId || '',
                     authorName: data.authorName,
                     authorAvatar: data.authorAvatar,
-                    rating: data.rating,
-                    totalRatings: data.totalRatings,
+                    rating: data.rating || 0,
+                    totalRatings: data.totalRatings || 0,
                     category: data.category,
                     createdAt: row.$createdAt,
                 };
@@ -85,8 +126,8 @@ const RecipeDetail = () => {
             }
         };
 
-        fetchRecipe();
-    }, [id]);
+        fetchData();
+    }, [id, isLoggedIn]);
 
     if (loading) {
         return (
@@ -119,16 +160,101 @@ const RecipeDetail = () => {
         );
     }
 
-    const handleRate = (rating: number) => {
+    const handleRate = async (rating: number) => {
         if (!isLoggedIn) {
             setLoginModalOpen(true);
             return;
         }
-        setUserRating(rating);
-        toast({
-            title: "Thanks for rating!",
-            description: `You rated this recipe ${rating} stars.`,
-        });
+
+        if (!recipe || !currentUser) return;
+
+        // Prevent owner from rating
+        if (currentUser.$id === recipe.authorId) {
+            toast({
+                title: "Action restricted",
+                description: "You cannot rate your own recipe.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        setIsRating(true);
+        try {
+            const oldUserRating = userRating;
+            const oldAvg = recipe.rating || 0;
+            const oldTotal = recipe.totalRatings || 0;
+
+            let newAvg = oldAvg;
+            let newTotal = oldTotal;
+
+            if (existingRatingId) {
+                console.log(existingRatingId);
+                console.log(currentUser.$id, recipe.id, rating)
+                // Update existing rating
+                await tables.updateRow({
+                    databaseId: DATABASE_ID,
+                    tableId: RATINGS_COLLECTION_ID,
+                    rowId: existingRatingId,
+                    data: {
+                        rating: rating,
+                        comment: "Updated rating"
+                    }
+                });
+
+                // Recalculate average: remove old rating, add new one
+                newAvg = ((oldAvg * oldTotal) - oldUserRating + rating) / oldTotal;
+            } else {
+                // Create new rating
+                const res = await tables.createRow({
+                    databaseId: DATABASE_ID,
+                    tableId: RATINGS_COLLECTION_ID,
+                    rowId: ID.unique(),
+                    data: {
+                        userId: currentUser.$id,
+                        recipeId: recipe.id,
+                        rating: rating,
+                        comment: "New rating" // Required field as per user
+                    }
+                });
+                setExistingRatingId(res.$id);
+
+                // Recalculate average: add new rating
+                newAvg = ((oldAvg * oldTotal) + rating) / (oldTotal + 1);
+                newTotal = oldTotal + 1;
+            }
+
+            // Update recipe document
+            // await tables.updateRow({
+            //     databaseId: DATABASE_ID,
+            //     tableId: RECIPES_COLLECTION_ID,
+            //     rowId: recipe.id,
+            //     data: {
+            //         rating: parseFloat(newAvg.toFixed(2)),
+            //         totalRatings: newTotal
+            //     }
+            // });
+
+            setUserRating(rating);
+            setRecipe({
+                ...recipe,
+                rating: newAvg,
+                totalRatings: newTotal
+            });
+
+            toast({
+                title: "Thanks for rating!",
+                description: `You rated this recipe ${rating} stars.`,
+            });
+        } catch (error) {
+            console.error('Failed to submit rating:', error);
+            toast({
+                title: "Error",
+                description: "Failed to submit your rating. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsRating(false);
+        }
     };
 
     return (
@@ -228,14 +354,18 @@ const RecipeDetail = () => {
                                                 <p className="font-display text-xs font-medium text-foreground/80 mb-1">Rate this recipe:</p>
                                                 <StarRating
                                                     rating={userRating || recipe.rating}
-                                                    interactive
+                                                    interactive={!isRating && currentUser?.$id !== recipe.authorId}
                                                     onRate={handleRate}
                                                     size="sm"
                                                 />
                                             </div>
-                                            {!isLoggedIn && (
+                                            {!isLoggedIn ? (
                                                 <span className="text-[10px] text-muted-foreground italic">
                                                     Sign in to rate
+                                                </span>
+                                            ) : currentUser?.$id === recipe.authorId && (
+                                                <span className="text-[10px] text-muted-foreground italic">
+                                                    Your recipe
                                                 </span>
                                             )}
                                         </div>

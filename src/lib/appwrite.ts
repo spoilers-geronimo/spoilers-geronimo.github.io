@@ -13,6 +13,7 @@ export const storage = new Storage(client);
 
 export const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
 export const RECIPES_COLLECTION_ID = import.meta.env.VITE_APPWRITE_RECIPES_COLLECTION_ID;
+export const RATINGS_COLLECTION_ID = import.meta.env.VITE_APPWRITE_RATINGS_COLLECTION_ID;
 export const BUCKET_ID = import.meta.env.VITE_APPWRITE_BUCKET_ID;
 
 export { ID, Permission, Role, Query } from 'appwrite';

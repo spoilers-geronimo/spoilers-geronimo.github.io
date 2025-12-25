@@ -10,6 +10,7 @@ export interface Recipe {
     ingredients: string[];
     instructions: string[];
     author: string;
+    authorId: string;
     authorName: string;
     authorAvatar: string;
     rating: number;

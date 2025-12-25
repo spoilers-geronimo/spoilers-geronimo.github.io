@@ -38,7 +38,7 @@ const Signup = () => {
 
             toast({
                 title: "Account created!",
-                description: "Welcome to SavoryStories. Please sign in to continue.",
+                description: "Welcome to Kitchen Delight. Please sign in to continue.",
             });
             navigate('/', { state: { openLogin: true } });
         } catch (error: any) {
@@ -67,7 +67,7 @@ const Signup = () => {
                         <div className="flex items-center gap-2 mb-4">
                             <ChefHat className="h-8 w-8 text-primary" />
                             <span className="font-display text-2xl font-bold">
-                                Savory<span className="text-primary">Stories</span>
+                                Kitchen<span className="text-primary">Delight</span>
                             </span>
                         </div>
                         <h1 className="font-display text-3xl font-bold mb-2">Join Our Kitchen</h1>

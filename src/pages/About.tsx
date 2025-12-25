@@ -35,7 +35,7 @@ const About = () => {
                 <section className="relative py-24 bg-gradient-to-br from-primary/10 via-background to-accent/5 kitchen-pattern">
                     <div className="container text-center">
                         <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
-                            About <span className="text-primary">SavoryStories</span>
+                            About <span className="text-primary">Kitchen Delight</span>
                         </h1>
                         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                             We believe that the best recipes come from home kitchens, passed down through generations,
@@ -54,7 +54,7 @@ const About = () => {
                                 </h2>
                                 <div className="space-y-4 text-muted-foreground">
                                     <p>
-                                        SavoryStories was born from a simple idea: to create a space where home cooks
+                                        Kitchen Delight was born from a simple idea: to create a space where home cooks
                                         could share their authentic recipes and culinary traditions with the world.
                                     </p>
                                     <p>
