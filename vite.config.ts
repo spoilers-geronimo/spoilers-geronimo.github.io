@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => ({
         host: "::",
         port: 8080,
     },
-    base: "/creamy-kitchen-delights/",
+    base: "/",
     plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
     resolve: {
         alias: {
@@ -17,3 +17,10 @@ export default defineConfig(({ mode }) => ({
         },
     },
 }));
+// import { defineConfig } from "vite";
+// import react from "@vitejs/plugin-react-swc";
+
+// export default defineConfig({
+//     base: "/creamy-kitchen-delights/",
+//     plugins: [react()],
+// });
