@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { RecipeCard } from '@/components/recipes/RecipeCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -11,11 +12,40 @@ import { Recipe } from '@/types/recipe';
 import { Models } from 'appwrite';
 
 const Recipes = () => {
+    const [searchParams, setSearchParams] = useSearchParams();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [recipes, setRecipes] = useState<Recipe[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    // Sync selectedCategory with search params
+    useEffect(() => {
+        const categoryParam = searchParams.get('category');
+        if (categoryParam) {
+            // Find the matching category from our categories list (case-insensitive)
+            const matchedCategory = categories.find(
+                c => c.toLowerCase() === categoryParam.toLowerCase()
+            );
+            if (matchedCategory) {
+                setSelectedCategory(matchedCategory);
+            } else {
+                setSelectedCategory('All');
+            }
+        } else {
+            setSelectedCategory('All');
+        }
+    }, [searchParams]);
+
+    // Update URL when category changes
+    const handleCategoryChange = (category: string) => {
+        if (category === 'All') {
+            searchParams.delete('category');
+        } else {
+            searchParams.set('category', category.toLowerCase());
+        }
+        setSearchParams(searchParams);
+    };
 
     useEffect(() => {
         const fetchRecipes = async () => {
@@ -118,7 +148,7 @@ const Recipes = () => {
                                 key={category}
                                 variant={selectedCategory === category ? 'default' : 'outline'}
                                 size="sm"
-                                onClick={() => setSelectedCategory(category)}
+                                onClick={() => handleCategoryChange(category)}
                                 className={cn(
                                     "rounded-full",
                                     selectedCategory === category && "shadow-md"

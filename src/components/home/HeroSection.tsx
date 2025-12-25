@@ -64,7 +64,7 @@ export const HeroSection = () => {
                         </div>
 
                         {/* Stats */}
-                        <div className="flex gap-8 mt-12 justify-center lg:justify-start">
+                        {/* <div className="flex gap-8 mt-12 justify-center lg:justify-start">
                             <div>
                                 <div className="font-display text-3xl font-bold text-primary">2.5k+</div>
                                 <div className="text-sm text-muted-foreground">Recipes</div>
@@ -77,7 +77,7 @@ export const HeroSection = () => {
                                 <div className="font-display text-3xl font-bold text-primary">4.8</div>
                                 <div className="text-sm text-muted-foreground">Avg Rating</div>
                             </div>
-                        </div>
+                        </div> */}
                     </div>
 
                     {/* Right Image Grid */}
